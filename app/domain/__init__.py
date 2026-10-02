@@ -1,0 +1,1 @@
+"""Domínio hidráulico independente de transporte e persistência."""
