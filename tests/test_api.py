@@ -1,3 +1,6 @@
+from io import BytesIO
+
+from docx import Document
 from fastapi.testclient import TestClient
 import pytest
 
@@ -83,6 +86,21 @@ def test_docx_memorial_recalculates_and_returns_word_document() -> None:
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
     assert response.content.startswith(b"PK")
+    document = Document(BytesIO(response.content))
+    paragraphs = [paragraph.text for paragraph in document.paragraphs]
+    headings = [
+        paragraph.text
+        for paragraph in document.paragraphs
+        if paragraph.style.name == "Heading 1"
+    ]
+    assert headings == [
+        "2. Dados de entrada e premissas",
+        "3. Desenvolvimento dos cálculos",
+        "4. Resultados e dimensionamento",
+        "5. Verificações e conclusão",
+    ]
+    assert "Cliente de teste" not in "\n".join(paragraphs)
+    assert "Residência" not in "\n".join(paragraphs)
 
 
 def test_json_memorial_contains_inputs_premises_steps_and_conclusion() -> None:

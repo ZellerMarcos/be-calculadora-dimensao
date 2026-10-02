@@ -44,12 +44,7 @@ def build_docx(memorial: dict) -> bytes:
     _add_key_value(document, "Versão do motor", memorial.get("versaoMotor", ""))
     _add_key_value(document, "Gerado em", memorial.get("geradoEm", ""))
 
-    project = memorial.get("projeto", {})
-    document.add_heading("1. Identificação do projeto", level=1)
-    for key, label in (("nome", "Projeto"), ("cliente", "Cliente"), ("responsavel", "Responsável técnico"), ("data", "Data informada")):
-        _add_key_value(document, label, project.get(key, ""))
-
-    document.add_heading("2. Dados de entrada", level=1)
+    document.add_heading("2. Dados de entrada e premissas", level=1)
     inputs = memorial.get("entradas", {})
     input_labels = (
         ("station_name", "Posto pluviométrico"),
@@ -75,13 +70,13 @@ def build_docx(memorial: dict) -> bytes:
     for key, label in input_labels:
         _add_key_value(document, label, inputs.get(key, ""))
 
-    document.add_heading("3. Premissas e critérios", level=1)
+    document.add_heading("Premissas e critérios", level=2)
     for premise in memorial.get("premissas", []):
         paragraph = document.add_paragraph(style="List Bullet")
         paragraph.add_run(f"[{_safe_text(premise.get('origem', ''))}] ").bold = True
         paragraph.add_run(_safe_text(premise.get("descricao", "")))
 
-    document.add_heading("4. Desenvolvimento dos cálculos", level=1)
+    document.add_heading("3. Desenvolvimento dos cálculos", level=1)
     for step in memorial.get("passos", []):
         document.add_heading(f"{step.get('ordem', '')}. {_safe_text(step.get('titulo', ''))}", level=2)
         _add_key_value(document, "Referência normativa", step.get("referenciaNorma", ""))
@@ -91,7 +86,7 @@ def build_docx(memorial: dict) -> bytes:
         unit = step.get("unidade", "")
         _add_key_value(document, "Resultado", f"{step.get('resultado', '')} {unit}".strip())
 
-    document.add_heading("5. Resultados", level=1)
+    document.add_heading("4. Resultados e dimensionamento", level=1)
     results = memorial.get("resultados", {})
     for key, label in (
         ("areaContribuicaoM2", "Área de contribuição (m²)"),
@@ -110,7 +105,7 @@ def build_docx(memorial: dict) -> bytes:
 
     dimensioning = memorial.get("dimensionamento")
     if dimensioning:
-        document.add_heading("5.1 Dimensão mínima calculada", level=2)
+        document.add_heading("Dimensionamento mínimo calculado", level=2)
         for key, label in (
             ("status", "Situação do dimensionamento"),
             ("secao", "Seção"),
@@ -123,7 +118,7 @@ def build_docx(memorial: dict) -> bytes:
         ):
             _add_key_value(document, label, dimensioning.get(key, ""))
 
-    document.add_heading("6. Alertas e observações", level=1)
+    document.add_heading("5. Verificações e conclusão", level=1)
     alerts = memorial.get("alertas", [])
     if alerts:
         for alert in alerts:
@@ -134,7 +129,6 @@ def build_docx(memorial: dict) -> bytes:
     else:
         document.add_paragraph("Nenhum alerta adicional para as entradas avaliadas.")
 
-    document.add_heading("7. Conclusão", level=1)
     conclusion = document.add_paragraph(_safe_text(memorial.get("conclusao", "")))
     conclusion.runs[0].bold = True
     document.add_paragraph(
