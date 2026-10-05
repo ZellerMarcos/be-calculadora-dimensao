@@ -52,7 +52,7 @@ Todos usam o prefixo `/api/v1/nbr10844`.
 }
 ```
 
-A resposta inclui `status`, `resultados`, `alertas`, `passos` e `metadados`. O dimensionamento acrescenta `dimensionamento` com a dimensão mínima ou motivo de não atendimento. Para saída central, informe `outlet_type: "central"`, `extension_side_a` e `extension_side_b`; para intensidade manual informe `rainfall_source: "manual"`, `intensity` e `manual_justification`.
+A resposta inclui `status`, `resultados`, `alertas`, `passos` e `metadados`. O dimensionamento acrescenta `dimensionamento` com a dimensão mínima ou motivo de não atendimento. Para saída central, informe `outlet_type: "central"`, `extension_side_a` e `extension_side_b`; para intensidade manual informe `rainfall_source: "manual"` e `intensity`. `manual_justification` é opcional; quando ausente, o memorial e os alertas registram que não foi fornecida justificativa adicional.
 
 `POST /memorial?formato=json|docx&tipo=verificar|dimensionar` aceita o mesmo corpo, recalcula a operação solicitada e gera o memorial completo. DOCX é enviado como arquivo do Word; JSON inclui entradas, premissas, fórmulas, substituições, resultados, alertas e conclusão.
 

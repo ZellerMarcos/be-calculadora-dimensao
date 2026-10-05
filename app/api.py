@@ -78,13 +78,6 @@ class CalculationInput(BaseModel):
     gutter_type: Literal["beiral_platibanda", "agua_furtada"] = "beiral_platibanda"
     project: ProjectInput = Field(default_factory=ProjectInput)
 
-    @field_validator("manual_justification")
-    @classmethod
-    def require_manual_justification(cls, value: str, info):
-        if info.data.get("rainfall_source") == "manual" and not value.strip():
-            raise ValueError("informe a justificativa para a intensidade manual")
-        return value
-
     @field_validator("roughness")
     @classmethod
     def validate_roughness(cls, value: float) -> float:
@@ -347,10 +340,15 @@ def _calculate(data: CalculationInput) -> dict:
             "referenciaNorma": "5.1.4",
         })
     if data.rainfall_source == "manual":
+        manual_justification = data.manual_justification.strip()
         alerts.append({
             "codigo": "INTENSIDADE_MANUAL",
-            "nivel": "info",
-            "mensagem": f"Justificativa registrada: {data.manual_justification}",
+            "nivel": "info" if manual_justification else "aviso",
+            "mensagem": (
+                f"Justificativa registrada: {manual_justification}"
+                if manual_justification
+                else "Intensidade manual informada sem justificativa adicional."
+            ),
             "referenciaNorma": "Tabela 5, nota a",
         })
     if actual_period is not None and actual_period != data.return_period:
@@ -395,7 +393,15 @@ def _calculate(data: CalculationInput) -> dict:
     else:
         premises.append({"origem": "adotado pelo projetista", "descricao": f"Lâmina útil informada: {data.useful_depth_mm} mm."})
     if data.rainfall_source == "manual":
-        premises.append({"origem": "adotado pelo projetista", "descricao": f"Intensidade manual: {data.manual_justification}."})
+        manual_justification = data.manual_justification.strip()
+        premises.append({
+            "origem": "adotado pelo projetista",
+            "descricao": (
+                f"Intensidade manual: {manual_justification}."
+                if manual_justification
+                else "Intensidade informada manualmente; justificativa adicional não fornecida."
+            ),
+        })
 
     memorial = {
         "projeto": data.project.model_dump(),

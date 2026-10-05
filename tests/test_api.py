@@ -68,14 +68,19 @@ def test_horizontal_surface_uses_flat_area_formula() -> None:
     assert "a · b" in response.json()["passos"][1]["formulaTexto"]
 
 
-def test_manual_rainfall_requires_justification() -> None:
+def test_manual_rainfall_can_be_calculated_without_justification() -> None:
     payload = verification_input()
     payload.update({"rainfall_source": "manual", "manual_justification": ""})
 
     response = client.post("/api/v1/nbr10844/calhas/verificar", json=payload)
 
-    assert response.status_code == 422
-    assert response.json()["codigo"] == "ENTRADA_INVALIDA"
+    assert response.status_code == 200
+    manual_alert = next(
+        alert for alert in response.json()["alertas"]
+        if alert["codigo"] == "INTENSIDADE_MANUAL"
+    )
+    assert manual_alert["nivel"] == "aviso"
+    assert manual_alert["mensagem"] == "Intensidade manual informada sem justificativa adicional."
 
 
 def test_docx_memorial_recalculates_and_returns_word_document() -> None:
